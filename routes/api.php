@@ -55,6 +55,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('permitted-personnels', PersonnelController::class);
     Route::apiResource('locations', LocationController::class);
     Route::apiResource('tenants', TenantController::class);
+    Route::post('/packages/search', [PackageController::class, 'search']);
     Route::post('/imk/{id}', [PaymentController::class, 'store']);
     Route::get('/imk/{id}', [PaymentController::class, 'show']);
     Route::post('/approve/{id}', [PaymentController::class, 'update']);
