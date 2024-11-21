@@ -165,4 +165,23 @@ class PackageController extends Controller
             ], 409);
         }
     }
+
+    public function search(Request $request)
+    {
+        // Ambil query pencarian dari parameter
+        $query = $request->input('key');
+
+        // Lakukan pencarian di database
+        $package = Package::where('item', 'like', '%' . $query . '%')
+            ->orWhere('type', 'like', '%' . $query . '%')
+            ->orWhere('detail', 'like', '%' . $query . '%')
+            ->get();
+
+        // Kembalikan hasil pencarian dalam bentuk JSON
+        return response()->json([
+            'success' => true,
+            'message' => 'Data siswa berhasil diambil.',
+            'data' => $package
+        ]);
+    }
 }
