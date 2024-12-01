@@ -12,15 +12,17 @@ class Vehicle extends Model
     protected $table = 'vehicles';
     protected $fillable = [
         'category_id',
+        'customer_id',
         'plate_number',
         'no_lambung',
         'number_stiker',
         'stnk',
     ];
 
+
     public function customer()
     {
-        return $this->belongsTo(Customer::class, 'id_customer', 'id');
+        return $this->belongsTo(Customer::class, 'customer_id', 'id');
     }
 
     public function permittedVehicle()

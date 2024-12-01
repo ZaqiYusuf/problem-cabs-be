@@ -12,6 +12,7 @@ class Customer extends Model
     protected $fillable = [
         'user_id',
         'name_customer',
+        'tenant_id',
         'address',
         'email',
         'pic',
@@ -26,7 +27,7 @@ class Customer extends Model
 
     public function payments()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Payment::class, 'id_customer', 'id');
     }
 
     // public function process_imk()
@@ -34,13 +35,24 @@ class Customer extends Model
     //     return $this->hasMany(ProcessImk::class);
     // }
 
+    // public function process_imk()
+    // {
+    //     return $this->belongsTo(ProcessImk::class, 'customer_id', 'id');
+    // }
     public function process_imk()
+{
+    return $this->hasMany(ProcessImk::class, 'customer_id', 'id'); 
+}
+
+
+    public function tenants()
     {
-        return $this->belongsTo(ProcessImk::class, 'customer_id', 'id');
+        return $this->belongsTo(Tenant::class, 'tenant_id', 'id');
     }
+
 
     public function vehicles()
     {
-        return $this->hasMany(Vehicle::class);
+        return $this->hasMany(Vehicle::class,'customer_id');
     }
 }

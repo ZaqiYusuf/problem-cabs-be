@@ -12,7 +12,7 @@ class VehicleController extends Controller
     {
         return response()->json([
             'success' => true,
-            'vehicles' => Vehicle::all()->load('category'),
+            'vehicles' => Vehicle::all()->load('category','customer'),
         ], 200);
     }
 
@@ -23,12 +23,14 @@ class VehicleController extends Controller
                 'plate_number' => 'required',
                 'no_lambung' => 'required',
                 'stnk' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-                'category_id' => 'required'
+                'category_id' => 'required',
+                'customer_id' => 'required'
             ], [
                 'plate_number.required' => 'The plate number is required.',
                 'no_lambung.required' => 'The no lambung is required.',
                 'stnk.required' => 'The STNK file is required.',
-                'category_id.required' => 'The category is required.'
+                'category_id.required' => 'The category is required.',
+                'customer_id.required' => 'The customer is required.'
             ]);
     
     
@@ -56,6 +58,7 @@ class VehicleController extends Controller
                 'number_stiker' => $newNumber,
                 'stnk' => $stnkPath,
                 'category_id' => $request->category_id,
+                'customer_id' => $request->customer_id,
                 'status' => true
             ]);
     
@@ -83,7 +86,7 @@ class VehicleController extends Controller
         }
         
         $request->validate([
-            'id_customer' => 'required',
+            'customer_id' => 'required',
             'plate_number' => 'required',
             'no_lambung' => 'required',
             'name_driver' => 'required',
@@ -92,7 +95,7 @@ class VehicleController extends Controller
         ]);
 
         $vehicle->update([
-            'id_customer' => $request->id_customer,
+            'customer_id' => $request->customer_id,
             'plate_number' => $request->plate_number,
             'no_lambung' => $request->no_lambung,
             'name_driver' => $request->name_driver,

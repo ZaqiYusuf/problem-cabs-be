@@ -67,10 +67,10 @@ class UserController extends Controller
         }
 
         $updated = $user->update([
-            'id_customer' => $request->id_customer,
-            'level' => $request->level
+            // 'id_customer' => $request->id_customer,
+            // 'level' => $request->level
             // 'email' => $request->email,
-            // 'password' => bcrypt($request->password),
+            'password' => bcrypt($request->password),
         ]);
 
         return response()->json([

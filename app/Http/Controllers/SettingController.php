@@ -66,6 +66,26 @@ class SettingController extends Controller
             ], 409);
         }
     }
+    private function updateEnv(array $data)
+{
+    $envPath = base_path('.env');
+    $envContent = file_get_contents($envPath);
+
+    foreach ($data as $key => $value) {
+        $escaped = preg_quote($key, '/');
+        $pattern = "/^{$escaped}=.*/m";
+
+        if (preg_match($pattern, $envContent)) {
+            $envContent = preg_replace($pattern, "{$key}={$value}", $envContent);
+        } else {
+            $envContent .= PHP_EOL . "{$key}={$value}";
+        }
+    }
+
+    file_put_contents($envPath, $envContent);
+}
+
+    
 
     /**
      * Display the specified resource.
@@ -153,4 +173,6 @@ class SettingController extends Controller
             return response()->json(['message' => 'Setting not found'], 404);
         }
     }
+
+    
 }

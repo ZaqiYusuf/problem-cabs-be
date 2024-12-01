@@ -12,38 +12,49 @@ class PrintStikerController extends Controller
 {
     public function generatePdf(Request $request)
     {
-        // Validate the request
+        // Validasi body form-data
         $request->validate([
-            'vehicle_id' => 'required|integer',
+            'vehicle_id' => 'required|integer', // Pastikan vehicle_id dikirim
         ]);
-
-        // Fetch the necessary data using the vehicle ID from the request
-        $vehicle = Vehicle::find($request->vehicle_id);
+    
+        // Ambil vehicle_id dari body form-data
+        $vehicleId = $request->input('vehicle_id');
+    
+        // Cari vehicle berdasarkan vehicle_id
+        $vehicle = Vehicle::find($vehicleId);
+    
         if (!$vehicle) {
             return response()->json(['error' => 'Vehicle not found'], 404);
         }
-
+    
+        // Ambil customer terkait vehicle
         $customer = $vehicle->customer()->first();
-        // Pass data to the view
-
-        $imk = ProcessImk::where('id_customer', $customer->id)->first();
-
-        // dd($imk, $customer, $vehicle);
-
+    
+        if (!$customer) {
+            return response()->json(['error' => 'Customer not found'], 404);
+        }
+    
+        // Ambil IMK terkait customer
+        $imk = ProcessImk::where('customer_id', $customer->id)->first();
+    
+        if (!$imk) {
+            return response()->json(['error' => 'IMK not found'], 404);
+        }
+    
+        // Data untuk PDF
         $data = [
-            'nomor_stiker' => $imk->number_stiker, // Assuming you have this field
+            // 'nomor_stiker' => $imk->number_stiker, // Pastikan kolom ini ada
+            'nomor_stiker' => $vehicle->number_stiker, // Pastikan kolom ini ada
             'name_customer' => $customer->name_customer,
             'no_lambung' => $vehicle->no_lambung,
             'plate_number' => $vehicle->plate_number,
             'area' => 'Tj Harapan',
         ];
-
-        // dd($data);
-
-        // Load the view and generate the PDF
+    
+        // Generate PDF
         $pdf = PDF::loadView('pdf.stiker', $data);
-
-        // Return the PDF as a response
+    
+        // Return PDF sebagai respons
         return $pdf->download('stiker.pdf');
     }
 }

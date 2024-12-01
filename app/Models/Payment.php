@@ -14,6 +14,7 @@ class Payment extends Model
         'id_customer',
         'id_imk',
         'pay_date',
+        'pay_method',
         'amount_pay',
         'status_pay',
         'name_pay',
@@ -24,7 +25,7 @@ class Payment extends Model
 
     public function customer()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class, 'id_customer','id');
     }
 
     public function user()
