@@ -14,10 +14,10 @@ class Category extends Model
         'type'
     ];
 
-    public function periode()
-    {
-        return $this->hasMany(Periode::class, 'category_id', 'id');
-    }
+    // public function periode()
+    // {
+    //     return $this->hasMany(Periode::class, 'category_id', 'id');
+    // }
 
     public function process_imk()
     {

@@ -15,26 +15,46 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        try {
-            // Retrieve only tenant_id and customer columns
-            $processImks = ProcessImk::select('customer', 'tenant_id')->get()->load('tenant');
+    public function index(Request $request)
+{
+    try {
+        $tenantName = $request->query('tenant');
 
-            return response()->json([
-                'success' => true,
-                'processImks' => $processImks,
-            ], 200);
-        } catch (\Exception $e) {
-            // Handle potential exceptions
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve Process IMK data.',
-                'error' => $e->getMessage(),
-            ], 500);
+        $query = ProcessImk::select('customer_id', 'tenant_id')->with('customer','tenant');
+
+        if ($tenantName) {
+            $query->whereHas('tenant', function ($q) use ($tenantName) {
+                $q->where('name_tenant', 'like', '%' . $tenantName . '%');
+            });
         }
-    }
 
+        // Ambil data yang difilter
+        $processImks = $query->get();
+
+        return response()->json([
+            'success' => true,
+            'processImks' => $processImks,
+        ], 200);
+    } catch (\Exception $e) {
+        // Tangani potensi error
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to retrieve Process IMK data.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+
+    public function getAllData(Request $request)
+{
+    return response()->json([
+        'success' => true,
+        'customers' => Customer::with('tenants')->get(),
+    ], 200);
+}
+
+    
     /**
      * Show the form for creating a new resource.
      */
@@ -50,7 +70,8 @@ class CustomerController extends Controller
     {
         try {
             $req = $request->validate([
-                'number_tenant' => 'required',
+                // 'number_tenant' => 'required',
+                'tenant_id' => 'required',
                 'name_customer' => 'required',
                 'address' => 'required',
                 'email' => 'required|email|unique:customers',
@@ -79,7 +100,8 @@ class CustomerController extends Controller
 
             $customer = Customer::create([
                 'user_id' => $user->id,
-                'number_tenant' => $request->number_tenant,
+                'tenant_id' => $request->tenant_id,
+                // 'number_tenant' => $request->number_tenant,
                 'name_customer' => $request->name_customer,
                 'address' => $request->address,
                 'email' => $request->email,
@@ -127,7 +149,7 @@ class CustomerController extends Controller
     public function update(Request $request, $id)
     {
         $customer = Customer::find($id);
-        dd($customer);
+        // dd($customer);
 
         if (!$customer) {
             return response()->json([
@@ -150,6 +172,8 @@ class CustomerController extends Controller
 
             $updated = $customer->update([
                 'number_tenant' => $request->number_tenant,
+                // 'number_tenant' => $request->number_tenant,
+                'tenant_id' => $request->number_tenant,
                 'name_customer' => $request->name_customer,
                 'address' => $request->address,
                 'email' => $request->email,

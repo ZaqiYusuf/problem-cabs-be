@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('id_imk');
             $table->date('pay_date');
             $table->string('amount_pay');
-            $table->enum('status_pay', ['capture', 'pending', 'cancel', 'expire', 'refund', 'failure']);
+            $table->enum('status_pay', ['capture', 'pending', 'cancel', 'expire', 'refund', 'failure','paid']);
             $table->string('name_pay');
             $table->string('redirect_url');
             $table->string('order_id');

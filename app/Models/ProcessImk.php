@@ -21,14 +21,19 @@ class ProcessImk extends Model
     //     return $this->belongsTo(Customer::class, 'customer_id', 'id');
     // }
 
+    // public function customer()
+    // {
+    //     return $this->hasMany(Customer::class, 'id');
+    // }
+
     public function customer()
-    {
-        return $this->hasMany(Customer::class, 'id');
-    }
+{
+    return $this->belongsTo(Customer::class, 'customer_id', 'id'); // Sesuaikan foreign key
+}
 
     public function payment()
     {
-        return $this->belongsTo(Payment::class, 'id');
+        return $this->belongsTo(Payment::class, 'id_imk','id');
     }
 
     public function vehicles()

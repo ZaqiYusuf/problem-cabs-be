@@ -2,42 +2,94 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\ProcessImk;
-use App\Models\PermittedVehicle;
 use App\Models\Personnel;
+use App\Models\ProcessImk;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use App\Models\PermittedVehicle;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class ProcessImkController extends Controller
 {
     public function index()
-    {
-        $imks = ProcessImk::all()->load('vehicles.location', 'vehicles.package', 'personnels.package', 'personnels.location', 'tenant');
-        $imks->map(function ($imk) {
-            $imk->qty_vehicles = count($imk->vehicles);
-            return $imk;
-        });
-        $imks->map(function ($imk) {
-            // Hitung total price dari vehicles packages
-            $totalVehiclesPrice = $imk->vehicles->sum(function ($vehicles) {
-                return $vehicles->package->price ?? 0; // Pastikan package ada sebelum mengambil price
+{
+    try {
+        // Ambil user yang sedang login
+        $user = Auth::user();
+
+        // Cek apakah user adalah admin
+        $isAdmin = $user->level === 'admin'; // Ganti sesuai ENUM role Anda
+
+        // Ambil data ProcessImk yang terkait dengan user atau semua data jika admin
+        $query = ProcessImk::with([
+            'customer',
+            'vehicles.location',
+            'vehicles.package',
+            'personnels.package',
+            'personnels.location',
+            'tenant'
+        ]);
+
+        if (!$isAdmin) {
+            // Jika bukan admin, filter hanya data milik user yang login
+            $query->whereHas('customer', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
             });
-        
+        }
+
+        $imks = $query->get();
+
+        // Proses qty_vehicles dan total_cost
+        $imks->map(function ($imk) {
+            // Hitung jumlah kendaraan
+            $imk->qty_vehicles = count($imk->vehicles);
+
+            // Hitung total price dari vehicles packages
+            $totalVehiclesPrice = $imk->vehicles->sum(function ($vehicle) {
+                return $vehicle->package->price ?? 0;
+            });
+
             // Hitung total price dari personnel packages
             $totalPersonnelPrice = $imk->personnels->sum(function ($personnel) {
-                return $personnel->package->price ?? 0; // Pastikan package ada sebelum mengambil price
+                return $personnel->package->price ?? 0;
             });
-        
-            // Jumlahkan total harga dari permitted dan personnel
+
+            // Jumlahkan total harga kendaraan dan personnel
             $imk->total_cost = $totalVehiclesPrice + $totalPersonnelPrice;
-        
+
             return $imk;
         });
-        return response()->json([
+
+        $response = [
             'success' => true,
             'process_imks' => $imks,
-        ], 200);
+        ];
+
+        if ($isAdmin) {
+            // Jika admin, tambahkan informasi tambahan
+            $statusCount = ProcessImk::where('status_imk', 1)->count();
+            $now = Carbon::now();
+            $overdueCount = PermittedVehicle::whereMonth('expired_at', $now->month)
+                ->where('expired_at', '<', $now)
+                ->count();
+
+            $response['jumlah entry permits (active)'] = $statusCount;
+            $response['jumlah terlambat bulan ini (overdue)'] = $overdueCount;
+        }
+
+        return response()->json($response, 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to retrieve Process IMK data.',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+
+
 
     public function store(Request $request)
     {
@@ -61,13 +113,15 @@ class ProcessImkController extends Controller
 
             $latestIMK = ProcessImk::latest()->first();
             $imk_number = $latestIMK
-                ? "IMK " . str_pad((int)explode(' ', $latestIMK->imk_number)[1] + 1, 3, '0', STR_PAD_LEFT) . "/KIE/" . $romanMonths[date('n')] . "/" . date('Y')
+                ? "IMK " . str_pad((int) explode(' ', $latestIMK->imk_number)[1] + 1, 3, '0', STR_PAD_LEFT) . "/KIE/" . $romanMonths[date('n')] . "/" . date('Y')
                 : "IMK 001/KIE/" . $romanMonths[date('n')] . "/" . date('Y');
 
             $request->validate([
                 'document_number' => 'required',
                 'registration_date' => 'required',
                 'tenant_id' => 'required|exists:tenants,id',
+                'customer_id' => 'required|exists:customers,id',
+                // 'customer' => 'required',
                 'item' => 'required',
                 'vehicles' => 'required|array',
                 'vehicles.*.plate_number' => 'required',
@@ -111,7 +165,7 @@ class ProcessImkController extends Controller
                 'imk_number' => $imk_number,
                 'document_number' => $request->document_number,
                 'registration_date' => $request->registration_date,
-                'customer' => $request->customer,
+                'customer_id' => $request->customer_id,
                 'tenant_id' => $request->tenant_id,
                 'total_cost' => $request->total_cost,
                 'item' => $request->item,
@@ -217,7 +271,8 @@ class ProcessImkController extends Controller
             $process->update([
                 'document_number' => $request->document_number,
                 'registration_date' => $request->registration_date,
-                'customer' => $request->customer,
+                // 'customer' => $request->customer,
+                'customer_id' => $request->customer_id,
                 'tenant_id' => $request->tenant_id,
                 'total_cost' => $request->total_cost,
                 'item' => $request->item,

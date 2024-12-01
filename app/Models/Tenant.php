@@ -17,4 +17,9 @@ class Tenant extends Model
     {
         return $this->hasMany(ProcessImk::class, 'tenant_id', 'id');
     }
+
+    public function customer()
+    {
+        return $this->hasMany(Customer::class, 'tenant_id', 'id');
+    }
 }
