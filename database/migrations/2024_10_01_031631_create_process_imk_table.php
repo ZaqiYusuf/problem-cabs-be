@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('imk_number');
             $table->string('document_number');
-            $table->string('customer')->nullable();
+            $table->string('customer_id')->nullable();
             $table->integer('tenant_id');
             $table->string('total_cost')->nullable();
             $table->date('registration_date');

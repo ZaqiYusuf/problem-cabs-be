@@ -63,7 +63,7 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::get('imk/all/data', [PaymentController::class, 'getAllData']);
     Route::post('/approve/{id}', [PaymentController::class, 'update']);
     Route::post('/pdf', [PrintStikerController::class, 'generatePdf']);
-    Route::apiResource('settings', SettingController::class);
+    Route::apiResource('/settings', SettingController::class);
 });
 
 Route::middleware(['auth:api', 'role:user'])->group(function () {

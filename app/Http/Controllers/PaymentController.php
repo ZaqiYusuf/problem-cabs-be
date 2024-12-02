@@ -62,10 +62,15 @@ class PaymentController extends Controller
                                 ->get();
         }
 
+        $paidCount = Payment::where('status_pay', 'paid')->count();
+        $pendingCount = Payment::where('status_pay', 'pending')->count();
+
         // Kembalikan data dalam format JSON
         return response()->json([
             'success' => true,
             'payment' => $payments,
+            'paid_payment' => $paidCount,
+            'pending_payment' => $pendingCount,
         ], 200);
 
     } catch (\Exception $e) {
@@ -108,6 +113,7 @@ class PaymentController extends Controller
             'note_pay' => 'nullable|string',
             'pay_method' => 'required|string',
             'order_id' => 'nullable|string',
+            'status_pay' => 'nullable|string',
             'redirect_url' => 'nullable'
         ]);
 
@@ -161,7 +167,7 @@ class PaymentController extends Controller
                 'name_pay' => $request->name_pay,
                 'note_pay' => $request->note_pay,
                 'pay_method' => $request->pay_method,
-                'status_pay' => 'pending',
+                'status_pay' => $request->status_pay,
                 'redirect_url' => $paymentResponse->redirect_url,
                 'order_id' => $order_id,
                 // 'midtrans_order_id' => $params['transaction_details']['order_id'],
