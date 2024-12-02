@@ -10,6 +10,8 @@ use App\Models\PermittedVehicle;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;  
+
 
 class ProcessImkController extends Controller
 {
@@ -75,8 +77,8 @@ class ProcessImkController extends Controller
                 ->where('expired_at', '<', $now)
                 ->count();
 
-            $response['jumlah entry permits (active)'] = $statusCount;
-            $response['jumlah terlambat bulan ini (overdue)'] = $overdueCount;
+            $response['entry_active'] = $statusCount;
+            $response['overdue'] = $overdueCount;
         }
 
         return response()->json($response, 200);
@@ -218,6 +220,8 @@ class ProcessImkController extends Controller
                 'process' => $process->load(['vehicles', 'personnels']),
             ], 201);
         } catch (\Exception $e) {
+            Log::error('IMK Process Failed: ' . $e->getMessage());
+
             DB::rollBack();
             return response()->json([
                 'success' => false,
