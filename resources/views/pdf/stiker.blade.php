@@ -59,7 +59,7 @@
                 <p>Area: {{ $area }}</p>
             </div>
             <div class="expiry">
-                {{-- BERLAKU S/D: {{ $expired_at }} --}}
+                <p>BERLAKU S/D: {{ \Carbon\Carbon::parse($expired_at)->translatedFormat('d F Y') }}</p>
             </div>
         </div>
     </div>

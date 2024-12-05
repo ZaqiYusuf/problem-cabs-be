@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PermittedVehicle;
 use App\Models\Vehicle;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
 use App\Models\Customer;
 use App\Models\ProcessImk;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\PermittedVehicle;
+use App\Http\Controllers\Controller;
 
 class PrintStikerController extends Controller
 {
@@ -30,8 +32,30 @@ class PrintStikerController extends Controller
             return response()->json(['error' => 'Customer not found'], 404);
         }
     
-        // Ambil data IMK jika diperlukan
-        // $imk = ProcessImk::where('customer_id', $customer->id)->first();
+        // Ambil data izin kendaraan dari tabel PermittedVehicle
+        $permittedVehicle = PermittedVehicle::where('vehicle_id', $request->vehicle_id)->first();
+    if (!$permittedVehicle) {
+        return response()->json(['error' => 'Permitted Vehicle not found'], 404);
+    }
+
+    // Format tanggal expired_at ke format "12 Desember 2024"
+    $expiredAtFormatted = Carbon::parse($permittedVehicle->expired_at)->translatedFormat('d F Y');
+
+    // Ambil alamat dari customer
+    $address = $customer->address;
+
+    // Siapkan data untuk dikirim ke view
+    $data = [
+        'nomor_stiker' => $vehicle->number_stiker, // Nomor stiker dari kendaraan
+        'name_customer' => $customer->name_customer,
+        'no_lambung' => $vehicle->no_lambung,
+        'plate_number' => $vehicle->plate_number,
+        'area' => $address, // Alamat dari customer
+        // 'expired_at' => $expiredAtFormatted, // Tanggal expired dengan format baru
+        'expired_at' => Carbon::parse($permittedVehicle->expired_at)->translatedFormat('d F Y'),
+    ];
+
+        
     
         // Ambil alamat dari customer
         $address = $customer->address;
@@ -43,6 +67,7 @@ class PrintStikerController extends Controller
             'no_lambung' => $vehicle->no_lambung,
             'plate_number' => $vehicle->plate_number,
             'area' => $address, // Alamat dari customer
+            'expired_at' => $permittedVehicle->expired_at, // Tanggal expired
         ];
     
         // Generate PDF
@@ -57,4 +82,4 @@ class PrintStikerController extends Controller
         // Kembalikan file PDF sebagai respons
         return $pdf->download('stiker.pdf');
     }
-}    
+    }    
