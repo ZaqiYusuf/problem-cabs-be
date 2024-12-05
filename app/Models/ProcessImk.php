@@ -41,6 +41,11 @@ class ProcessImk extends Model
         return $this->hasMany(PermittedVehicle::class, 'id_imk', 'id');
     }
 
+    // public function permittedVehicle()
+    // {
+    //     return $this->hasMany(PermittedVehicle::class, 'vehicle_id', 'id');
+    // }
+
     public function personnels()
     {
         return $this->hasMany(Personnel::class, 'id_imk', 'id');

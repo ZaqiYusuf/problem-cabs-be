@@ -16,45 +16,45 @@ class CustomerController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-{
-    try {
-        $tenantName = $request->query('tenant');
+    {
+        try {
+            $tenantName = $request->query('tenant');
 
-        $query = ProcessImk::select('customer_id', 'tenant_id')->with('customer','tenant');
+            $query = ProcessImk::select('customer_id', 'tenant_id')->with('customer', 'tenant');
 
-        if ($tenantName) {
-            $query->whereHas('tenant', function ($q) use ($tenantName) {
-                $q->where('name_tenant', 'like', '%' . $tenantName . '%');
-            });
+            if ($tenantName) {
+                $query->whereHas('tenant', function ($q) use ($tenantName) {
+                    $q->where('name_tenant', 'like', '%' . $tenantName . '%');
+                });
+            }
+
+            // Ambil data yang difilter
+            $processImks = $query->get();
+
+            return response()->json([
+                'success' => true,
+                'processImks' => $processImks,
+            ], 200);
+        } catch (\Exception $e) {
+            // Tangani potensi error
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve Process IMK data.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        // Ambil data yang difilter
-        $processImks = $query->get();
-
-        return response()->json([
-            'success' => true,
-            'processImks' => $processImks,
-        ], 200);
-    } catch (\Exception $e) {
-        // Tangani potensi error
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to retrieve Process IMK data.',
-            'error' => $e->getMessage(),
-        ], 500);
     }
-}
 
 
     public function getAllData(Request $request)
-{
-    return response()->json([
-        'success' => true,
-        'customers' => Customer::with('tenants')->get(),
-    ], 200);
-}
+    {
+        return response()->json([
+            'success' => true,
+            'customers' => Customer::with('tenants')->get(),
+        ], 200);
+    }
 
-    
+
     /**
      * Show the form for creating a new resource.
      */
@@ -69,8 +69,8 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         try {
+            // Validasi input dari request
             $req = $request->validate([
-                // 'number_tenant' => 'required',
                 'tenant_id' => 'required',
                 'name_customer' => 'required',
                 'address' => 'required',
@@ -80,9 +80,11 @@ class CustomerController extends Controller
                 'upload_file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             ]);
 
+            // Memeriksa apakah file di-upload
             if ($request->hasFile('upload_file')) {
                 $file = $request->file('upload_file');
                 $filename = strtolower(str_replace(' ', '-', $request->name_customer)) . '_surat.' . $file->getClientOriginalExtension();
+                // Menyimpan file ke storage
                 $path = $file->storeAs('dokumen', $filename, 'public');
             } else {
                 return response()->json([
@@ -92,48 +94,51 @@ class CustomerController extends Controller
             }
 
             DB::beginTransaction();
-            $password = str_replace('@gmail.com', '', $request->email) . rand(000, 999);
-            $user = User::create([
-                'email' => $request->email,
-                'password' => bcrypt($password),
-            ]);
 
+            // Menetapkan status ke 'pending'
+            $status = 'pending';
+
+            // Membuat data customer dengan status pending
             $customer = Customer::create([
-                'user_id' => $user->id,
                 'tenant_id' => $request->tenant_id,
-                // 'number_tenant' => $request->number_tenant,
                 'name_customer' => $request->name_customer,
                 'address' => $request->address,
                 'email' => $request->email,
-                'pic' => $request->pic,
-                'pic_number' => $request->pic_number,
                 'upload_file' => $path,
+                'pic' => $request->pic,
+                'status' => $status,
+                'pic_number' => $request->pic_number,
             ]);
 
-            $customer['password'] = $password;
-
             DB::commit();
-            if ($customer) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Customer created successfully',
-                    'customer' => $customer,
-                ], 201);
-            }
+
+            // Mengembalikan respon sukses
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer created successfully. Awaiting admin approval.',
+                'customer' => $customer,
+            ], 201);
+
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Customer creation failed',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 409);
         }
     }
 
+
+
+
+
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer) {}
+    public function show(Customer $customer)
+    {
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -171,13 +176,14 @@ class CustomerController extends Controller
             }
 
             $updated = $customer->update([
-                'number_tenant' => $request->number_tenant,
+                // 'number_tenant' => $request->number_tenant,
                 // 'number_tenant' => $request->number_tenant,
                 'tenant_id' => $request->number_tenant,
                 'name_customer' => $request->name_customer,
                 'address' => $request->address,
                 'email' => $request->email,
                 'pic' => $request->pic,
+                'status' => $request->status,
                 'pic_number' => $request->pic_number,
                 'upload_file' => $request->$path,
             ]);
@@ -219,4 +225,55 @@ class CustomerController extends Controller
             ], 404);
         }
     }
+
+
+    public function approve(Request $request, $id)
+{
+    try {
+        DB::beginTransaction();
+
+        // Mencari data customer berdasarkan ID
+        $customer = Customer::findOrFail($id);
+
+        // Memeriksa apakah status customer masih pending
+        if ($customer->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer already approved or rejected',
+            ], 400);
+        }
+
+        // Membuat password berdasarkan email customer
+        $password = str_replace('@gmail.com', '', $customer->email) . rand(000, 999);
+
+        // Membuat akun user
+        $user = User::create([
+            'email' => $customer->email,
+            'password' => bcrypt($password),
+        ]);
+
+        // Menyambungkan customer dengan akun user dan memperbarui status customer
+        $customer->update([
+            'status' => 'approved',
+            'user_id' => $user->id, // Gunakan ID dari user yang baru dibuat
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer approved and account created successfully',
+            'customer' => $customer,
+            'password' => $password, // Untuk keperluan debugging, hapus di production
+        ], 200);
+    } catch (Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Customer approval failed',
+            'details' => $e->getMessage(),
+        ], 409);
+    }
+}
+
 }

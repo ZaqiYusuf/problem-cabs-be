@@ -22,4 +22,5 @@ class Tenant extends Model
     {
         return $this->hasMany(Customer::class, 'tenant_id', 'id');
     }
+    
 }

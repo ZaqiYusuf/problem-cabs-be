@@ -49,6 +49,7 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::apiResource('customers', CustomerController::class);
     Route::get('customers/all/data', [CustomerController::class, 'getAllData']);
     Route::post('customers/{id}', [CustomerController::class, 'update']);
+    Route::post('customers/approve/{id}', [CustomerController::class, 'approve']);
     Route::apiResource('packages', PackageController::class);
     Route::apiResource('process-imks', ProcessImkController::class);
     Route::post('process-imks/{id}', [ProcessImkController::class, 'update']);
@@ -57,6 +58,7 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::apiResource('locations', LocationController::class);
     Route::apiResource('tenants', TenantController::class);
     Route::apiResource('vehicles', VehicleController::class);
+    Route::apiResource('personnels', PersonnelController::class);
     Route::post('/packages/search', [PackageController::class, 'search']);
     Route::post('/imk/{id}', [PaymentController::class, 'store']);
     Route::get('/imk/{id}', [PaymentController::class, 'index']);
