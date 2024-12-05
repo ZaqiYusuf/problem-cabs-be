@@ -18,6 +18,8 @@ return new class extends Migration
             $table->unsignedInteger('number_stiker');
             $table->string('stnk');
             $table->integer('category_id');
+            $table->integer('customer_id');
+            $table->enum('status_stiker', ['printed','unprinted']);
             $table->timestamps();
         });
     }

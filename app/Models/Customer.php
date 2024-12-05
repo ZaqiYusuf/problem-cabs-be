@@ -18,6 +18,7 @@ class Customer extends Model
         'pic',
         'pic_number',
         'upload_file',
+        'status'
     ];
 
     public function user()

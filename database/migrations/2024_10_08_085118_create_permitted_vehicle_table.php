@@ -23,7 +23,7 @@ return new class extends Migration
             $table->integer('number_stiker');
             $table->integer('location_id');
             $table->string('cargo');
-            $table->string('origin');
+            $table->integer(column: 'vehicle_id');
             $table->date('start_date')->nullable();
             $table->date('expired_at')->nullable();
             $table->timestamps();

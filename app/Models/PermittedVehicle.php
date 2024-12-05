@@ -11,10 +11,10 @@ class PermittedVehicle extends Model
     protected $table = 'permitted_vehicle';
     protected $guarded = ['id'];
 
-    public function vehicle()
-    {
-        return $this->belongsTo(Vehicle::class);
-    }
+    // public function vehicle()
+    // {
+    //     return $this->belongsTo(Vehicle::class, 'vehicle_id', 'id');
+    // }
 
     public function package()
     {

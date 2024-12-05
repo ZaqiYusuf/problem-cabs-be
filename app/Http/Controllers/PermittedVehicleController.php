@@ -29,6 +29,7 @@ class PermittedVehicleController extends Controller
             'sim' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'package_id' => 'required',
             'location_id' => 'required',
+            'vehicle_id' => 'required',
             'cargo' => 'required',
             'origin' => 'required',
             'start_date' => 'required|date',
@@ -42,6 +43,7 @@ class PermittedVehicleController extends Controller
             'sim.required' => 'Please upload the SIM file',
             'package_id.required' => 'Please enter package id',
             'location_id.required' => 'Please enter location id',
+            'vehicle_id.required' => 'Please enter vehicle id',
             'cargo.required' => 'Please enter cargo',
             'origin.required' => 'Please enter origin',
             'start_date.required' => 'Please enter start date',
@@ -58,12 +60,15 @@ class PermittedVehicleController extends Controller
         $stnkFilename = strtolower(str_replace(' ', '-', $request->plate_number)) . '_stnk.' . $stnkFile->getClientOriginalExtension();
         $stnkPath = $stnkFile->storeAs('stnk', $stnkFilename, 'public');
 
+        
+
         // Generate nomor stiker baru
         $number = PermittedVehicle::max('number_stiker') ?? 0;
         $newNumber = $number + 1;
 
         // Simpan data kendaraan
         PermittedVehicle::create([
+            'id_imk' => $request->id_imk,
             'package_id' => $request->package_id,
             'plate_number' => $request->plate_number,
             'no_lambung' => $request->no_lambung,
@@ -72,6 +77,7 @@ class PermittedVehicleController extends Controller
             'sim' => $simPath,
             'number_stiker' => $newNumber,
             'location_id' => $request->location_id,
+            'vehicle_id' => $request->vehicle_id,
             'cargo' => $request->cargo,
             'origin' => $request->origin,
             'start_date' => $request->start_date,

@@ -106,8 +106,8 @@ class PaymentController extends Controller
     {
         $request->validate([
             'user_id' => 'nullable',
-            'id_customer' => 'nullable',
-            // 'id_imk' => 'required|exists:process_imk,id',
+            'id_customer' => 'required|exists:process_imk,customer_id',
+            'id_imk' => 'required|exists:process_imk,id',
             'name_pay' => 'required|string',
             'amount_pay' => 'required|numeric',
             'note_pay' => 'nullable|string',
@@ -118,7 +118,7 @@ class PaymentController extends Controller
         ]);
 
         // $processImk = ProcessImk::find($id);
-        $processImk = ProcessImk::find($request->id_imk);
+        $processImk = ProcessImk::find($request->id);
 
         // dd($processImk);
 
@@ -250,7 +250,7 @@ class PaymentController extends Controller
     //     ], 200);
     // }
 
-    public function update($id)
+  public function update($id)
 {
     $payment = Payment::find($id);
 
@@ -267,10 +267,19 @@ class PaymentController extends Controller
         'pay_date' => now()
     ]);
 
-    // Akses relasi process_imk yang berhubungan dengan payment
-    $payment->process_imk()->update([
-        'status_imk' => true
-    ]);
+    // Pastikan relasi process_imk ada
+    $processImk = $payment->process_imk;
+    if ($processImk) {
+        // Update status IMK
+        $processImk->update([
+            'status_imk' => true
+        ]);
+    } else {
+        return response()->json([
+            'success' => false,
+            'message' => 'IMK process not found for this payment'
+        ], 404);
+    }
 
     return response()->json([
         'success' => true,
@@ -278,6 +287,7 @@ class PaymentController extends Controller
         'payment' => $payment
     ], 200);
 }
+
 
     /**
      * Remove the specified resource from storage.

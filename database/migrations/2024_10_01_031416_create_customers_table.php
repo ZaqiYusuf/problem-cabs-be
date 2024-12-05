@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('email');
             $table->string('pic');
             $table->string('pic_number');
+            $table->string('tenant_id');
+            $table->enum('status', ['pending','approve']);
             $table->string('upload_file')->nullable();
             $table->timestamps();
         });

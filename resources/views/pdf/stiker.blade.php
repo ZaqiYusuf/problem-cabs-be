@@ -59,7 +59,7 @@
                 <p>Area: {{ $area }}</p>
             </div>
             <div class="expiry">
-                BERLAKU S/D: 31 DESEMBER 2024
+                {{-- BERLAKU S/D: {{ $expired_at }} --}}
             </div>
         </div>
     </div>
