@@ -48,11 +48,22 @@ class CustomerController extends Controller
 
     public function getAllData(Request $request)
     {
-        return response()->json([
-            'success' => true,
-            'customers' => Customer::with('tenants')->get(),
-        ], 200);
+        try {
+            // Ambil data pelanggan beserta relasi tenant
+            return response()->json([
+                'success' => true,
+                'customers' => Customer::with('tenants')->get(),
+            ], 200);
+        } catch (\Exception $e) {
+            // Tangani potensi error
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve customer data.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+    
 
 
     /**
