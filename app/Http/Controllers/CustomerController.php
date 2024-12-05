@@ -45,7 +45,6 @@ class CustomerController extends Controller
         }
     }
 
-
     public function getAllData(Request $request)
     {
         try {
