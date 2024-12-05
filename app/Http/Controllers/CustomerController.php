@@ -52,6 +52,7 @@ class CustomerController extends Controller
             'success' => true,
             'customers' => Customer::with('tenants')->get(),
         ], 200);
+
     }
 
 

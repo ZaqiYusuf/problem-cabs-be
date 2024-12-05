@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;  
+
 
 class ProcessImkController extends Controller
 {
@@ -78,8 +80,8 @@ class ProcessImkController extends Controller
                 ->where('expired_at', '<', $now)
                 ->count();
 
-            $response['jumlah entry permits (active)'] = $statusCount;
-            $response['jumlah terlambat bulan ini (overdue)'] = $overdueCount;
+            $response['entry_active'] = $statusCount;
+            $response['overdue'] = $overdueCount;
         }
 
         return response()->json($response, 200);
@@ -418,6 +420,7 @@ public function update(Request $request, $id)
                     ]);
                 }
             }
+
         }
 
         DB::commit();

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('user_id')->unique();
             $table->string('name_customer');
+            $table->string('tenant_id');
             $table->string('address');
             $table->string('email');
             $table->string('pic');
