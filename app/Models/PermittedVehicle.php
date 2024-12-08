@@ -20,6 +20,10 @@ class PermittedVehicle extends Model
     {
         return $this->belongsTo(Package::class);
     }
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_id', 'id');
+    }
 
     public function processImk()
     {

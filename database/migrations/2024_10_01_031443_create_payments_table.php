@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('redirect_url');
             $table->string('order_id');
             $table->text('note_pay');
-            $table->text('pay_method');
             $table->timestamps();
         });
     }

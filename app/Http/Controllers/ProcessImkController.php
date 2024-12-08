@@ -37,6 +37,7 @@ class ProcessImkController extends Controller
                 'personnels.location',
                 'tenant'
             ]);
+            
 
             if (!$isAdmin) {
                 // Jika bukan admin, filter hanya data milik user yang login
@@ -257,7 +258,7 @@ class ProcessImkController extends Controller
 
             return response()->json([
                 'success' => true,
-                'process' => $process->load(['vehicles', 'personnels']),
+                'process' => $process->load(['vehicles', 'personnels',]),
             ], 201);
         } catch (\Exception $e) {
             Log::error('IMK Process Failed: ' . $e->getMessage());
@@ -269,11 +270,6 @@ class ProcessImkController extends Controller
             ], 422);
         }
     }
-
-
-
-
-
 
     public function update(Request $request, $id)
     {

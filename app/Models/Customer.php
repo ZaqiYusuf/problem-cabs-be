@@ -45,6 +45,11 @@ class Customer extends Model
     return $this->hasMany(ProcessImk::class, 'customer_id', 'id'); 
 }
 
+public function permitted_stiker()
+{
+    return $this->hasMany(Customer::class, 'customer_id', 'id'); 
+}
+
 
     public function tenants()
     {
