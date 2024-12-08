@@ -46,47 +46,47 @@ class PaymentController extends Controller
         // ]);
     }
 
-    public function getAllData(Request $request)
-    {
-        try {
-            // Ambil user yang sedang login
-            $user = Auth::user();
-            
-            // Jika user adalah admin, ambil semua data pembayaran
-            if ($user->level === 'admin') {
-                $payments = Payment::with('customer', 'user', 'process_imk')->get();
-    
-                // Hanya admin yang bisa melihat total paid dan pending
-                $paidCount = Payment::where('status_pay', 'paid')->count();
-                $pendingCount = Payment::where('status_pay', 'pending')->count();
-            } else {
-                // Jika user adalah user biasa, ambil hanya data pembayaran milik user tersebut
-                $payments = Payment::with('customer', 'user', 'process_imk')
-                                    ->where('user_id', $user->id) // Sesuaikan dengan kolom yang menghubungkan user dengan payment
-                                    ->get();
-    
-                // Set paidCount dan pendingCount ke null untuk user biasa
-                $paidCount = null;
-                $pendingCount = null;
-            }
-    
-            // Kembalikan data dalam format JSON
-            return response()->json([
-                'success' => true,
-                'payment' => $payments,
-                'paid_payment' => $paidCount,
-                'pending_payment' => $pendingCount,
-            ], 200);
-    
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve payments.',
-                'error' => $e->getMessage(),
-            ], 500);
+ public function getAllData(Request $request)
+{
+    try {
+        // Ambil user yang sedang login
+        $user = Auth::user();
+        
+        // Jika user adalah admin, ambil semua data pembayaran
+        if ($user->level === 'admin') {
+            $payments = Payment::with('customer', 'user', 'process_imk')->get();
+
+            // Hanya admin yang bisa melihat total paid dan pending
+            $paidCount = Payment::where('status_pay', 'paid')->count();
+            $pendingCount = Payment::where('status_pay', 'pending')->count();
+        } else {
+            // Jika user adalah user biasa, ambil hanya data pembayaran milik user tersebut
+            $payments = Payment::with('customer', 'user', 'process_imk')
+                                ->where('user_id', $user->id) // Sesuaikan dengan kolom yang menghubungkan user dengan payment
+                                ->get();
+
+            // Set paidCount dan pendingCount ke null untuk user biasa
+            $paidCount = null;
+            $pendingCount = null;
         }
+
+        // Kembalikan data dalam format JSON
+        return response()->json([
+            'success' => true,
+            'payment' => $payments,
+            'paid_payment' => $paidCount,
+            'pending_payment' => $pendingCount,
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to retrieve payments.',
+            'error' => $e->getMessage(),
+        ], 500);
     }
-    
+}
+
 
     // public function getAllData(Request $request)
     // {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\Package;
+use App\Models\Customer;
 use App\Models\Personnel;
 use App\Models\ProcessImk;
 use Illuminate\Http\Request;
@@ -120,36 +121,46 @@ class ProcessImkController extends Controller
                 ? "IMK " . str_pad((int) explode(' ', $latestIMK->imk_number)[1] + 1, 3, '0', STR_PAD_LEFT) . "/KIE/" . $romanMonths[date('n')] . "/" . date('Y')
                 : "IMK 001/KIE/" . $romanMonths[date('n')] . "/" . date('Y');
 
-            $request->validate([
-                'document_number' => 'required',
-                'registration_date' => 'required',
-                'tenant_id' => 'required|exists:tenants,id',
-                'customer_id' => 'required|exists:customers,id',
-                'item' => 'required',
-                'vehicles' => 'required|array',
-                'vehicles.*.plate_number' => 'required',
-                'vehicles.*.no_lambung' => 'required',
-                'vehicles.*.stnk' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-                'vehicles.*.driver_name' => 'required',
-                'vehicles.*.sim' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-                'vehicles.*.package_id' => 'required',
-                'vehicles.*.location_id' => 'required',
-                'vehicles.*.vehicle_id' => 'required',
-                'vehicles.*.cargo' => 'required',
-                'vehicles.*.origin' => 'required',
-                'vehicles.*.start_date' => 'required',
-                'personnels' => 'sometimes|array',
-                'personnels.*.name' => 'required_with:personnels|string|nullable',
-                'personnels.*.identity_number' => 'required_with:personnels|integer|nullable',
-                'personnels.*.location_id' => 'required_with:personnels|integer|nullable',
-                'personnels.*.package_id' => 'required_with:personnels|integer|nullable',
+            // $request->validate([
+          $request->validate([
+            'document_number' => 'required',
+            'registration_date' => 'required',
+            'tenant_id' => 'required|exists:tenants,id',
+            'customer_id' => 'required',
+            'item' => 'required',
+            'vehicles' => 'required|array',
+            'vehicles.*.plate_number' => 'required',
+            'vehicles.*.no_lambung' => 'required',
+            'vehicles.*.stnk' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'vehicles.*.driver_name' => 'required',
+            'vehicles.*.sim' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'vehicles.*.package_id' => 'required',
+            'vehicles.*.location_id' => 'required',
+            'vehicles.*.vehicle_id' => 'required',
+            'vehicles.*.cargo' => 'required',
+            'vehicles.*.origin' => 'required',
+            'vehicles.*.start_date' => 'required',
+        ]);
+
+        // Cek apakah `customer_id` adalah nama customer baru
+        $customerId = null;
+
+        if (is_numeric($request->customer_id)) {
+            // Jika `customer_id` adalah ID yang valid
+            $customerId = $request->customer_id;
+        } else {
+            // Jika `customer_id` adalah nama baru, simpan ke tabel customers
+            $newCustomer = Customer::create([
+                'name_customer' => $request->customer_id,
             ]);
+            $customerId = $newCustomer->id;
+        }
 
             $process = ProcessImk::create([
                 'imk_number' => $imk_number,
                 'document_number' => $request->document_number,
                 'registration_date' => $request->registration_date,
-                'customer_id' => $request->customer_id,
+                'customer_id' => $customerId,
                 'tenant_id' => $request->tenant_id,
                 'total_cost' => $request->total_cost,
                 'item' => $request->item,
