@@ -89,10 +89,8 @@ class SettingController extends Controller
             // Perbarui file .env dengan data pengaturan yang diaktifkan
             $this->updateEnvFile([
                 'MIDTRANS_MERCHANT_ID' => $setting->merchant_id,
-                // 'MIDTRANS_CLIENT_KEY' => $setting->client_key,
                 'MIDTRANS_CLIENT_KEY' => Crypt::decrypt($setting->client_key),
                 'MIDTRANS_SERVER_KEY' => Crypt::decrypt($setting->server_key),
-                // 'MIDTRANS_SERVER_KEY' => $setting->server_key,
                 'MIDTRANS_ENVIRONMENT' => $setting->environment,
             ]);
 
