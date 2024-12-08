@@ -24,13 +24,12 @@ class VehicleController extends Controller
                 'no_lambung' => 'required',
                 'stnk' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
                 'category_id' => 'required',
-                'customer_id' => 'required'
+                'customer_id' => 'nullable',
             ], [
                 'plate_number.required' => 'The plate number is required.',
                 'no_lambung.required' => 'The no lambung is required.',
                 'stnk.required' => 'The STNK file is required.',
                 'category_id.required' => 'The category is required.',
-                'customer_id.required' => 'The customer is required.'
             ]);
     
     
@@ -59,7 +58,7 @@ class VehicleController extends Controller
                 'stnk' => $stnkPath,
                 'category_id' => $request->category_id,
                 'customer_id' => $request->customer_id,
-                'status' => true
+                'status_stiker' => false
             ]);
     
             return response()->json([
