@@ -25,10 +25,10 @@ class Vehicle extends Model
         return $this->belongsTo(Customer::class, 'customer_id', 'id');
     }
 
-    public function permittedVehicle()
-    {
-        return $this->hasMany(PermittedVehicle::class, 'vehicle_id', 'id');
-    }
+    // public function permittedVehicle()
+    // {
+    //     return $this->hasMany(PermittedVehicle::class, 'vehicle_id', 'id');
+    // }
 
     public function category()
     {
