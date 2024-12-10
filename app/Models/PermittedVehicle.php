@@ -24,6 +24,10 @@ class PermittedVehicle extends Model
     {
         return $this->belongsTo(Customer::class, 'customer_id', 'id');
     }
+    public function tenant()
+    {
+        return $this->belongsTo(Customer::class, 'tenant_id', 'id');
+    }
 
     public function processImk()
     {
