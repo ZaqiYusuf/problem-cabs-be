@@ -35,7 +35,8 @@ class ProcessImkController extends Controller
                 'vehicles.package',
                 'personnels.package',
                 'personnels.location',
-                'tenant'
+                'tenant',
+                'payment'
             ]);
             
 
@@ -137,7 +138,6 @@ class ProcessImkController extends Controller
             'vehicles.*.sim' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'vehicles.*.package_id' => 'required',
             'vehicles.*.location_id' => 'required',
-            'vehicles.*.vehicle_id' => 'required',
             'vehicles.*.cargo' => 'required',
             'vehicles.*.origin' => 'required',
             'vehicles.*.start_date' => 'required',
@@ -228,7 +228,6 @@ class ProcessImkController extends Controller
                         'sim' => $simPath,
                         'number_stiker' => $newNumber,
                         'location_id' => $vehicle['location_id'],
-                        'vehicle_id' => $vehicle['vehicle_id'],
                         'cargo' => $vehicle['cargo'],
                         'origin' => $vehicle['origin'],
                         'start_date' => $vehicle['start_date'],
@@ -299,7 +298,6 @@ class ProcessImkController extends Controller
                 'vehicles.*.sim' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
                 'vehicles.*.package_id' => 'required',
                 'vehicles.*.location_id' => 'required',
-                'vehicles.*.vehicle_id' => 'required',
                 'vehicles.*.cargo' => 'required',
                 'vehicles.*.origin' => 'required',
                 'vehicles.*.start_date' => 'required|date',
@@ -319,7 +317,6 @@ class ProcessImkController extends Controller
                 'tenant_id' => $request->tenant_id,
                 'total_cost' => $request->total_cost,
                 'item' => $request->item,
-                'vehicle_id' => $request->vehicle_id,
                 'status_imk' => 0,
             ]);
 
@@ -382,7 +379,6 @@ class ProcessImkController extends Controller
                         'sim' => $simPath,
                         'number_stiker' => $vehicleRecord->number_stiker,
                         'location_id' => $vehicle['location_id'],
-                        'vehicle_id' => $vehicle['location_id'],
                         'cargo' => $vehicle['cargo'],
                         'origin' => $vehicle['origin'],
                         'start_date' => $vehicle['start_date'],
@@ -399,7 +395,6 @@ class ProcessImkController extends Controller
                         'sim' => $simPath,
                         'number_stiker' => PermittedVehicle::max('number_stiker') + 1,
                         'location_id' => $vehicle['location_id'],
-                        'vehicle_id' => $vehicle['vehicle_id'],
                         'cargo' => $vehicle['cargo'],
                         'origin' => $vehicle['origin'],
                         'start_date' => $vehicle['start_date'],

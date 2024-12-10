@@ -56,6 +56,25 @@ class CustomerController extends Controller
     }
 
 
+    public function getById(Request $request, $id)
+    {
+        // Ambil data Customer berdasarkan user_id, sertakan relasi tenants
+        $customer = Customer::with('tenants')->where('user_id', $id)->first();
+    
+        if (!$customer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer not found',
+            ], 404);
+        }
+    
+        return response()->json([
+            'success' => true,
+            'customer' => $customer,
+        ], 200);
+    }
+    
+
     /**
      * Show the form for creating a new resource.
      */

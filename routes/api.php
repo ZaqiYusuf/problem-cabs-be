@@ -48,6 +48,7 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::apiResource('category', CategoryController::class);
     Route::apiResource('customers', CustomerController::class);
     Route::get('customers/all/data', [CustomerController::class, 'getAllData']);
+    Route::get('customers/get-by-user-id/{id}', [CustomerController::class, 'getById']);
     Route::post('customers/{id}', [CustomerController::class, 'update']);
     Route::post('customers/approve/{id}', [CustomerController::class, 'approve']);
     Route::apiResource('packages', PackageController::class);
@@ -64,7 +65,7 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::get('/imk/{id}', [PaymentController::class, 'index']);
     Route::get('imk/all/data', [PaymentController::class, 'getAllData']);
     Route::post('/approve/{id}', [PaymentController::class, 'update']);
-    Route::post('/pdf', [PrintStikerController::class, 'generatePdf']);
+    Route::post('/pdf/{id}', [PrintStikerController::class, 'generatePdf']);
     Route::apiResource('/settings', SettingController::class);
 });
 

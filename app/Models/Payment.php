@@ -36,6 +36,6 @@ class Payment extends Model
 
     public function process_imk()
     {
-        return $this->belongsTo(ProcessImk::class, 'id_imk');
+        return $this->belongsTo(ProcessImk::class, 'id_imk', 'id');
     }
 }
