@@ -65,7 +65,8 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::get('/imk/{id}', [PaymentController::class, 'index']);
     Route::get('imk/all/data', [PaymentController::class, 'getAllData']);
     Route::post('/approve/{id}', [PaymentController::class, 'update']);
-    Route::post('/pdf/{id}', [PrintStikerController::class, 'generatePdf']);
+    Route::post('/pdf/{id}', [PrintStikerController::class, 'generateSingleSticker']);
+    Route::post('/all/pdf/{id}', [PrintStikerController::class, 'generateAllStickersByImk']);
     Route::apiResource('/settings', SettingController::class);
 });
 

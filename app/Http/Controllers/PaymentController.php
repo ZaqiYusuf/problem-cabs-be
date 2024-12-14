@@ -4,110 +4,66 @@ namespace App\Http\Controllers;
 
 use Midtrans\Snap;
 use Midtrans\Config;
-use Midtrans\CoreApi;
-use App\Models\Payment;
-use Midtrans\Transaction;
-use App\Models\ProcessImk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
+use App\Models\Payment;
+use App\Models\ProcessImk;
 use Illuminate\Support\Facades\Auth;
-use Psr\Http\Message\ResponseInterface;
 
 class PaymentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request, $id)
     {
         $payment = Payment::with('customer', 'user', 'process_imk')->find($id);
-
         $paidCount = Payment::where('status_pay', 'paid')->count();
         $pendingCount = Payment::where('status_pay', 'pending')->count();
-
 
         if ($payment) {
             return response()->json([
                 'success' => true,
                 'payment' => $payment,
-                'jumlah pembayaran selesai (paid)' => $paidCount,
-                'jumlah pembayaran tertunda (pending)' => $pendingCount,
+                'jumlah_pembayaran_selesai' => $paidCount,
+                'jumlah_pembayaran_tertunda' => $pendingCount,
             ], 200);
         } else {
             return response()->json([
                 'success' => false,
-                'message' => 'payment not found',
+                'message' => 'Payment not found',
             ], 404);
         }
-        // return response()->json([
-        //     'success' => true,
-        //     'Payment' => Payment::all()->load('customer', 'user', 'process_imk'),
-        // ]);
     }
 
- public function getAllData(Request $request)
-{
-    try {
-        // Ambil user yang sedang login
-        $user = Auth::user();
-        
-        // Jika user adalah admin, ambil semua data pembayaran
-        if ($user->level === 'admin') {
-            $payments = Payment::with('customer', 'user', 'process_imk')->get();
-
-            // Hanya admin yang bisa melihat total paid dan pending
-            $paidCount = Payment::where('status_pay', 'paid')->count();
-            $pendingCount = Payment::where('status_pay', 'pending')->count();
-        } else {
-            // Jika user adalah user biasa, ambil hanya data pembayaran milik user tersebut
-            $payments = Payment::with('customer', 'user', 'process_imk')
-                                ->where('user_id', $user->id) // Sesuaikan dengan kolom yang menghubungkan user dengan payment
-                                ->get();
-
-            // Set paidCount dan pendingCount ke null untuk user biasa
-            $paidCount = null;
-            $pendingCount = null;
-        }
-
-        // Kembalikan data dalam format JSON
-        return response()->json([
-            'success' => true,
-            'payment' => $payments,
-            'paid_payment' => $paidCount,
-            'pending_payment' => $pendingCount,
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to retrieve payments.',
-            'error' => $e->getMessage(),
-        ], 500);
-    }
-}
-
-
-    // public function getAllData(Request $request)
-    // {
-    //     return response()->json([
-    //         'success' => true,
-    //         'payment' => Payment::with('customer', 'user', 'process_imk')->get(),
-    //     ], 200);
-    // }
-    
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function getAllData(Request $request)
     {
-        //
+        try {
+            $user = Auth::user();
+            
+            if ($user->level === 'admin') {
+                $payments = Payment::with('customer', 'user', 'process_imk')->get();
+                $paidCount = Payment::where('status_pay', 'paid')->count();
+                $pendingCount = Payment::where('status_pay', 'pending')->count();
+            } else {
+                $payments = Payment::with('customer', 'user', 'process_imk')->where('user_id', $user->id)->get();
+                $paidCount = null;
+                $pendingCount = null;
+            }
+
+            return response()->json([
+                'success' => true,
+                'payment' => $payments,
+                'paid_payment' => $paidCount,
+                'pending_payment' => $pendingCount,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve payments.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request, $id)
     {
         $request->validate([
@@ -118,16 +74,9 @@ class PaymentController extends Controller
             'amount_pay' => 'required|numeric',
             'note_pay' => 'nullable|string',
             'pay_method' => 'required|string',
-            'order_id' => 'nullable|string',
-            'status_pay' => 'nullable|string',
-            'redirect_url' => 'nullable'
         ]);
 
-        // $processImk = ProcessImk::find($id);
         $processImk = ProcessImk::find($request->id);
-
-        // dd($processImk);
-
         if (!$processImk) {
             return response()->json([
                 'success' => false,
@@ -142,7 +91,7 @@ class PaymentController extends Controller
         $order_id = 'IMK-' . uniqid();
 
         $params = [
-            "payment_type" => "gopay",
+            "payment_type" => $request->pay_method,
             'transaction_details' => [
                 'order_id' => $order_id,
                 'gross_amount' => $request->amount_pay,
@@ -160,6 +109,7 @@ class PaymentController extends Controller
                 ]
             ]
         ];
+        
 
         try {
             $paymentResponse = Snap::createTransaction($params);
@@ -173,11 +123,9 @@ class PaymentController extends Controller
                 'name_pay' => $request->name_pay,
                 'note_pay' => $request->note_pay,
                 'pay_method' => $request->pay_method,
-                'status_pay' => $request->status_pay,
+                'status_pay' => 'pending',
                 'redirect_url' => $paymentResponse->redirect_url,
                 'order_id' => $order_id,
-                // 'midtrans_order_id' => $params['transaction_details']['order_id'],
-                // 'midtrans_transaction_status' => "pending",
             ]);
 
             return response()->json([
@@ -193,116 +141,6 @@ class PaymentController extends Controller
         }
     }
 
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-
-        // Config::$serverKey = config('midtrans.server_key');
-        // Config::$isProduction = config('midtrans.is_production');
-        // Config::$isSanitized = config('midtrans.is_sanitized');
-
-        // try {
-        //     $payment = Payment::find($id);
-        //     Log::info($payment);
-        //     // $paymentResponse = Snap::
-
-        //     return response()->json([
-        //         'success' => true,
-        //         'message' => 'Payment created. Please check payment status.',
-        //         'payment_response' => $paymentResponse
-        //     ], 201);
-        // } catch (\Exception $e) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => $e->getMessage(),
-        //     ], 500);
-        // }
-    }
-
-    /**
-     * Show the form for editing the specified resource.2
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update($id)
-    // {
-    //     $payment = Payment::find($id);
-
-    //     if (!$payment) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Payment not found'
-    //         ], 404);
-    //     }
-
-    //     // Update status pembayaran menjadi 'paid'
-    //     $payment->update([
-    //         'status_pay' => 'paid',
-    //         'pay_date' => now()
-    //     ]);
-
-    //     // Update status IMK menjadi aktif (status_imk = true)
-    //     $payment->imk()->update([
-    //         'status_imk' => true
-    //     ]);
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Payment approved and IMK activated',
-    //         'payment' => $payment
-    //     ], 200);
-    // }
-
-  public function update($id)
-{
-    $payment = Payment::find($id);
-
-    if (!$payment) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Payment not found'
-        ], 404);
-    }
-
-    // Update status pembayaran menjadi 'paid'
-    $payment->update([
-        'status_pay' => 'paid',
-        'pay_date' => now()
-    ]);
-
-    // Pastikan relasi process_imk ada
-    $processImk = $payment->process_imk;
-    if ($processImk) {
-        // Update status IMK
-        $processImk->update([
-            'status_imk' => true
-        ]);
-    } else {
-        return response()->json([
-            'success' => false,
-            'message' => 'IMK process not found for this payment'
-        ], 404);
-    }
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Payment approved and IMK activated',
-        'payment' => $payment
-    ], 200);
-}
-
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Payment $payment)
-    {
-        //
-    }
-
     public function handleCallback(Request $request)
     {
         $orderId = $request->order_id;
@@ -311,31 +149,38 @@ class PaymentController extends Controller
 
         $signature = hash('sha512', $orderId . $statusCode . $grossAmount . config('midtrans.server_key'));
 
-        Log::info('incoming midtrans callback', $request->all());
-        if ($signature != $request->signature_key) {
+        Log::info('Midtrans callback received', $request->all());
+
+        if ($signature !== $request->signature_key) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid signature'
             ], 400);
         }
 
-        $transaction = Payment::where('order_id', $request->order_id)->first();
+        $transaction = Payment::where('order_id', $orderId)->first();
 
         if ($transaction) {
-            if ($request->transaction_status == 'settlement') {
-                $transaction->update(['status_pay' => 'capture']);
-            } elseif ($request->transaction_status == 'canceled') {
+            $status = $request->transaction_status;
+            if ($status === 'settlement') {
+                $transaction->update(['status_pay' => 'paid']);
+            } elseif ($status === 'cancel' || $status === 'deny') {
                 $transaction->update(['status_pay' => 'canceled']);
-            } elseif ($request->transaction_status == 'expired') {
+            } elseif ($status === 'expire') {
                 $transaction->update(['status_pay' => 'expired']);
             } else {
                 $transaction->update(['status_pay' => 'pending']);
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Callback success'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Callback processed successfully.'
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transaction not found.'
+            ], 404);
+        }
     }
 }
